@@ -1,13 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
 )
 
-const srvPort = "8080"
+const (
+	srvPort      = "8080"
+	filepathRoot = "."
+)
 
 func main() {
 
@@ -18,7 +20,9 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	fmt.Printf("Server listening on %v\n", srv.Addr)
+	mux.Handle("/", http.FileServer(http.Dir(".")))
+
+	log.Printf("Serving files from %s on port: %s\n", filepathRoot, srvPort)
 	log.Fatal(srv.ListenAndServe())
 
 }
