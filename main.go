@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"sync/atomic"
 	"time"
 )
 
@@ -11,15 +12,24 @@ const (
 	filepathRoot = "."
 )
 
+type apiConfig struct {
+	fileserverHits atomic.Int32
+}
+
 func main() {
+
+	cfg := &apiConfig{}
+
 	appHandler := http.StripPrefix(
 		"/app",
 		http.FileServer(http.Dir(".")),
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("/app/", middlewareLog(appHandler))
-	mux.Handle("/healthz", middlewareLog(http.HandlerFunc(healthHandler)))
+	mux.Handle("/app/", cfg.middlewareMetricsInc(middlewareLog(appHandler)))
+	mux.Handle("/healthz", cfg.middlewareMetricsInc(middlewareLog(http.HandlerFunc(healthHandler))))
+	mux.Handle("/metrics", middlewareLog(http.HandlerFunc(cfg.metricHandler)))
+	mux.Handle("/reset", middlewareLog(http.HandlerFunc(cfg.resetHandler)))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,
