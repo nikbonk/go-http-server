@@ -26,10 +26,10 @@ func main() {
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("/app/", cfg.middlewareMetricsInc(middlewareLog(appHandler)))
-	mux.Handle("/healthz", cfg.middlewareMetricsInc(middlewareLog(http.HandlerFunc(healthHandler))))
-	mux.Handle("/metrics", middlewareLog(http.HandlerFunc(cfg.metricHandler)))
-	mux.Handle("/reset", middlewareLog(http.HandlerFunc(cfg.resetHandler)))
+	mux.Handle("GET /app/", cfg.middlewareMetricsInc(middlewareLog(appHandler)))
+	mux.Handle("GET /healthz", cfg.middlewareMetricsInc(middlewareLog(http.HandlerFunc(healthHandler))))
+	mux.Handle("GET /metrics", middlewareLog(http.HandlerFunc(cfg.metricHandler)))
+	mux.Handle("POST /reset", middlewareLog(http.HandlerFunc(cfg.resetHandler)))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,
