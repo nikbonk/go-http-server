@@ -12,10 +12,14 @@ const (
 )
 
 func main() {
+	appHandler := http.StripPrefix(
+		"/app",
+		http.FileServer(http.Dir(".")),
+	)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/app/", appHandler)
-	mux.HandleFunc("/healthz", healthHandler)
+	mux.Handle("/app/", middlewareLog(appHandler))
+	mux.Handle("/healthz", middlewareLog(http.HandlerFunc(healthHandler)))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,
