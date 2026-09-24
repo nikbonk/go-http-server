@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
 	"net/http"
 )
 
@@ -14,11 +14,24 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *apiConfig) metricHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
-	hits := cfg.fileserverHits.Load()
-	fmt.Fprintf(w, "Hits: %v", hits)
+	websiteHits := cfg.fileserverHits.Load()
+
+	tmpl, err := template.ParseFiles("./html/metrics.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = tmpl.Execute(w, map[string]int32{
+		"websiteHits": websiteHits,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (cfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {

@@ -9,7 +9,7 @@ import (
 
 const (
 	srvPort      = "8080"
-	filepathRoot = "."
+	filepathRoot = "./html"
 )
 
 type apiConfig struct {
@@ -22,14 +22,14 @@ func main() {
 
 	appHandler := http.StripPrefix(
 		"/app",
-		http.FileServer(http.Dir(".")),
+		http.FileServer(http.Dir(filepathRoot)),
 	)
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /app/", cfg.middlewareMetricsInc(middlewareLog(appHandler)))
 	mux.Handle("GET /api/healthz", cfg.middlewareMetricsInc(middlewareLog(http.HandlerFunc(healthHandler))))
-	mux.Handle("GET /api/metrics", middlewareLog(http.HandlerFunc(cfg.metricHandler)))
-	mux.Handle("POST /api/reset", middlewareLog(http.HandlerFunc(cfg.resetHandler)))
+	mux.Handle("GET /admin/metrics", middlewareLog(http.HandlerFunc(cfg.metricHandler)))
+	mux.Handle("POST /admin/reset", middlewareLog(http.HandlerFunc(cfg.resetHandler)))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,
