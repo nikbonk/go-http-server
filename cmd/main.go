@@ -39,7 +39,7 @@ func main() {
 	mux.Handle("GET /app/", cfg.MiddlewareMetricsInc(nbhttp.MiddlewareLog(appHandler)))
 	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(nbhttp.MiddlewareLog(http.HandlerFunc(nbhttp.HealthHandler))))
 	mux.Handle("GET /admin/metrics", nbhttp.MiddlewareLog(http.HandlerFunc(cfg.MetricHandler)))
-	mux.Handle("POST /admin/reset", nbhttp.MiddlewareLog(http.HandlerFunc(cfg.ResetHandler)))
+	mux.Handle("POST /admin/reset", nbhttp.MiddlewareLog(http.HandlerFunc(cfg.ResetMetricsHandler)))
 	mux.Handle("POST /api/validate_chirp", cfg.MiddlewareMetricsInc(nbhttp.MiddlewareLog(http.HandlerFunc(nbhttp.ValidateBodyHandler))))
 
 	srv := &http.Server{

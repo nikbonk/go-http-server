@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 
 	nbjson "github.com/nikbonk/go-http-server/internal/json"
@@ -15,33 +14,6 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	w.Write([]byte(http.StatusText(http.StatusOK)))
-}
-
-func (cfg *ApiConfig) MetricHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-
-	websiteHits := cfg.fileserverHits.Load()
-
-	tmpl, err := template.ParseFiles("./html/metrics.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = tmpl.Execute(w, map[string]int32{
-		"websiteHits": websiteHits,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (cfg *ApiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
-	cfg.fileserverHits.Store(0)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hits reset to 0"))
 }
 
 func ValidateBodyHandler(w http.ResponseWriter, r *http.Request) {
