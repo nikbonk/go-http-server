@@ -30,6 +30,7 @@ func main() {
 	mux.Handle("GET /api/healthz", cfg.middlewareMetricsInc(middlewareLog(http.HandlerFunc(healthHandler))))
 	mux.Handle("GET /admin/metrics", middlewareLog(http.HandlerFunc(cfg.metricHandler)))
 	mux.Handle("POST /admin/reset", middlewareLog(http.HandlerFunc(cfg.resetHandler)))
+	mux.Handle("POST /api/validate_chirp", cfg.middlewareMetricsInc(middlewareLog(http.HandlerFunc(validateBodyHandler))))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,

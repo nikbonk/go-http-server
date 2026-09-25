@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 )
@@ -38,4 +39,30 @@ func (cfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.fileserverHits.Store(0)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Hits reset to 0"))
+}
+
+func validateBodyHandler(w http.ResponseWriter, r *http.Request) {
+	const maxChars = 140
+	w.Header().Set("Content-Type", "application/json")
+
+	decoder := json.NewDecoder(r.Body)
+	request := request{}
+	err := decoder.Decode(&request)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		return
+	}
+
+	if len(request.Body) > maxChars {
+		respondWithError(w, http.StatusBadRequest, "140 character limit reached.", nil)
+		return
+	}
+
+	containsProfanity, cleanedBody := containsProfanity(request.Body)
+	respondWithJSON(w, http.StatusOK, response{
+		Error:       "",
+		Valid:       !containsProfanity,
+		CleanedBody: cleanedBody,
+	})
+
 }
