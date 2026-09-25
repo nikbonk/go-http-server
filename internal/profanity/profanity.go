@@ -1,4 +1,4 @@
-package main
+package profanity
 
 import "strings"
 
@@ -8,7 +8,7 @@ var badWords = map[string]struct{}{
 	"fornax":    {},
 }
 
-func containsProfanity(body string) (bool, string) {
+func ContainsProfanity(body string) (bool, string) {
 	newBody := []string{}
 	badWordCount := 0
 

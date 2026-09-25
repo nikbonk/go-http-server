@@ -1,12 +1,15 @@
-package main
+package http
 
 import (
 	"encoding/json"
 	"html/template"
 	"net/http"
+
+	nbjson "github.com/nikbonk/go-http-server/internal/json"
+	"github.com/nikbonk/go-http-server/internal/profanity"
 )
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
+func HealthHandler(w http.ResponseWriter, r *http.Request) {
 	// imagine system check before just returning a 200 OK
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -14,7 +17,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(http.StatusText(http.StatusOK)))
 }
 
-func (cfg *apiConfig) metricHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) MetricHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
@@ -35,31 +38,31 @@ func (cfg *apiConfig) metricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *ApiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
 	cfg.fileserverHits.Store(0)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Hits reset to 0"))
 }
 
-func validateBodyHandler(w http.ResponseWriter, r *http.Request) {
+func ValidateBodyHandler(w http.ResponseWriter, r *http.Request) {
 	const maxChars = 140
 	w.Header().Set("Content-Type", "application/json")
 
 	decoder := json.NewDecoder(r.Body)
-	request := request{}
+	request := nbjson.Request{}
 	err := decoder.Decode(&request)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
+		nbjson.RespondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return
 	}
 
 	if len(request.Body) > maxChars {
-		respondWithError(w, http.StatusBadRequest, "140 character limit reached.", nil)
+		nbjson.RespondWithError(w, http.StatusBadRequest, "140 character limit reached.", nil)
 		return
 	}
 
-	containsProfanity, cleanedBody := containsProfanity(request.Body)
-	respondWithJSON(w, http.StatusOK, response{
+	containsProfanity, cleanedBody := profanity.ContainsProfanity(request.Body)
+	nbjson.RespondWithJSON(w, http.StatusOK, nbjson.Response{
 		Error:       "",
 		Valid:       !containsProfanity,
 		CleanedBody: cleanedBody,

@@ -1,4 +1,4 @@
-package main
+package json
 
 import (
 	"encoding/json"
@@ -6,17 +6,17 @@ import (
 	"net/http"
 )
 
-type request struct {
+type Request struct {
 	Body string `json:"body"`
 }
 
-type response struct {
+type Response struct {
 	Error       string `json:"error"`
 	Valid       bool   `json:"valid"`
 	CleanedBody string `json:"cleaned_body"`
 }
 
-func respondWithError(w http.ResponseWriter, statusCode int, errorMessage string, err error) {
+func RespondWithError(w http.ResponseWriter, statusCode int, errorMessage string, err error) {
 	if err != nil {
 		log.Println(err)
 	}
@@ -24,13 +24,13 @@ func respondWithError(w http.ResponseWriter, statusCode int, errorMessage string
 		log.Println("Server error:", statusCode, errorMessage)
 	}
 
-	respondWithJSON(w, statusCode, response{
+	RespondWithJSON(w, statusCode, Response{
 		Error: errorMessage,
 		Valid: false,
 	})
 }
 
-func respondWithJSON(w http.ResponseWriter, statusCode int, r response) {
+func RespondWithJSON(w http.ResponseWriter, statusCode int, r Response) {
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(r)
 }
