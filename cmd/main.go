@@ -14,7 +14,7 @@ import (
 
 const (
 	srvPort      = "8080"
-	filepathRoot = "../html"
+	filepathRoot = "./html"
 )
 
 func main() {
