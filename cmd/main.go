@@ -9,7 +9,8 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	nbhttp "github.com/nikbonk/go-http-server/internal/http"
+	api "github.com/nikbonk/go-http-server/internal/api"
+	validateBody "github.com/nikbonk/go-http-server/internal/validateBody"
 )
 
 const (
@@ -28,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cfg := nbhttp.NewApiConfig(db)
+	cfg := api.NewApiConfig(db)
 
 	appHandler := http.StripPrefix(
 		"/app",
@@ -36,11 +37,11 @@ func main() {
 	)
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /app/", cfg.MiddlewareMetricsInc(nbhttp.MiddlewareLog(appHandler)))
-	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(nbhttp.MiddlewareLog(http.HandlerFunc(nbhttp.HealthHandler))))
-	mux.Handle("GET /admin/metrics", nbhttp.MiddlewareLog(http.HandlerFunc(cfg.MetricHandler)))
-	mux.Handle("POST /admin/reset", nbhttp.MiddlewareLog(http.HandlerFunc(cfg.ResetMetricsHandler)))
-	mux.Handle("POST /api/validate_chirp", cfg.MiddlewareMetricsInc(nbhttp.MiddlewareLog(http.HandlerFunc(nbhttp.ValidateBodyHandler))))
+	mux.Handle("GET /app/", cfg.MiddlewareMetricsInc(api.MiddlewareLog(appHandler)))
+	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(api.HealthHandler))))
+	mux.Handle("GET /admin/metrics", api.MiddlewareLog(http.HandlerFunc(cfg.MetricHandler)))
+	mux.Handle("POST /admin/reset", api.MiddlewareLog(http.HandlerFunc(cfg.ResetMetricsHandler)))
+	mux.Handle("POST /api/validate_chirp", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(validateBody.ValidateBodyHandler))))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,
