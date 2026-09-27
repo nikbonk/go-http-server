@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	api "github.com/nikbonk/go-http-server/internal/api"
+	"github.com/nikbonk/go-http-server/internal/database"
 	validateBody "github.com/nikbonk/go-http-server/internal/validateBody"
 )
 
@@ -18,18 +20,34 @@ const (
 	filepathRoot = "./html"
 )
 
-func main() {
+func loadApiConfig() (*api.ApiConfig, error) {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		log.Fatal("DB_URL not set")
+		return nil, errors.New("DB_URL not set")
 	}
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+	dbQueries := database.New(db)
+
+	platform := os.Getenv("PLATFORM")
+	if platform == "" {
+		return nil, errors.New("PLATFORM not set")
+	} else if platform != "dev" && platform != "prod" {
+		return nil, errors.New("PLATFORM must be dev or prod")
 	}
 
-	cfg := api.NewApiConfig(db)
+	return api.NewApiConfig(dbQueries, platform), nil
+}
+
+func main() {
+
+	cfg, err := loadApiConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	appHandler := http.StripPrefix(
 		"/app",
@@ -40,8 +58,9 @@ func main() {
 	mux.Handle("GET /app/", cfg.MiddlewareMetricsInc(api.MiddlewareLog(appHandler)))
 	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(api.HealthHandler))))
 	mux.Handle("GET /admin/metrics", api.MiddlewareLog(http.HandlerFunc(cfg.MetricHandler)))
-	mux.Handle("POST /admin/reset", api.MiddlewareLog(http.HandlerFunc(cfg.ResetMetricsHandler)))
+	mux.Handle("POST /admin/reset", api.MiddlewareLog(http.HandlerFunc(cfg.ResetHandler)))
 	mux.Handle("POST /api/validate_chirp", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(validateBody.ValidateBodyHandler))))
+	mux.Handle("POST /api/users", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserCreateHandler))))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,

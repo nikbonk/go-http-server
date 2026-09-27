@@ -1,17 +1,20 @@
 package api
 
 import (
-	"database/sql"
 	"sync/atomic"
+
+	"github.com/nikbonk/go-http-server/internal/database"
 )
 
 type ApiConfig struct {
 	fileserverHits atomic.Int32
-	db             *sql.DB
+	db             *database.Queries
+	platform       string
 }
 
-func NewApiConfig(db *sql.DB) *ApiConfig {
+func NewApiConfig(db *database.Queries, platform string) *ApiConfig {
 	return &ApiConfig{
-		db: db,
+		db:       db,
+		platform: platform,
 	}
 }

@@ -26,12 +26,6 @@ func (cfg *ApiConfig) MetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cfg *ApiConfig) ResetMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	cfg.fileserverHits.Store(0)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hits reset to 0"))
-}
-
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
 	// imagine system check before just returning a 200 OK
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
