@@ -12,7 +12,6 @@ import (
 	_ "github.com/lib/pq"
 	api "github.com/nikbonk/go-http-server/internal/api"
 	"github.com/nikbonk/go-http-server/internal/database"
-	validateBody "github.com/nikbonk/go-http-server/internal/validateBody"
 )
 
 const (
@@ -59,8 +58,8 @@ func main() {
 	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(api.HealthHandler))))
 	mux.Handle("GET /admin/metrics", api.MiddlewareLog(http.HandlerFunc(cfg.MetricHandler)))
 	mux.Handle("POST /admin/reset", api.MiddlewareLog(http.HandlerFunc(cfg.ResetHandler)))
-	mux.Handle("POST /api/validate_chirp", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(validateBody.ValidateBodyHandler))))
 	mux.Handle("POST /api/users", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserCreateHandler))))
+	mux.Handle("POST /api/chirps", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpCreateHandler))))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,

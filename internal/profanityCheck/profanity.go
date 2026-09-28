@@ -8,7 +8,7 @@ var badWords = map[string]struct{}{
 	"fornax":    {},
 }
 
-func ContainsProfanity(body string) (bool, string) {
+func ContainsProfanity(body string) string {
 	newBody := []string{}
 	badWordCount := 0
 
@@ -20,7 +20,7 @@ func ContainsProfanity(body string) (bool, string) {
 			newBody = append(newBody, word)
 		}
 	}
-	return badWordCount > 0, strings.Join(newBody, " ")
+	return strings.Join(newBody, " ")
 }
 
 func filterProfanity(body string) string {
