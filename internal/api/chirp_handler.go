@@ -67,3 +67,29 @@ func (c *ApiConfig) ChirpCreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (c *ApiConfig) ChirpGetHandler(w http.ResponseWriter, r *http.Request) {
+	chirps, err := c.db.GetChirps(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	responses := make([]response, len(chirps))
+	for i, chirp := range chirps {
+		responses[i] = response{
+			ID:        chirp.ID,
+			CreatedAt: chirp.CreatedAt,
+			UpdatedAt: chirp.UpdatedAt,
+			Body:      chirp.Body,
+			UserID:    chirp.UserID,
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(responses); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+}
