@@ -61,6 +61,7 @@ func main() {
 	mux.Handle("POST /api/users", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserCreateHandler))))
 	mux.Handle("POST /api/chirps", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpCreateHandler))))
 	mux.Handle("GET /api/chirps", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpGetHandler))))
+	mux.Handle("GET /api/chirps/{id}", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpGetByIdHandler))))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,

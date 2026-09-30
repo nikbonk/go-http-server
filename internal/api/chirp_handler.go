@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -29,7 +30,7 @@ func (c *ApiConfig) ChirpCreateHandler(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&request); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -92,4 +93,35 @@ func (c *ApiConfig) ChirpGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func (c *ApiConfig) ChirpGetByIdHandler(w http.ResponseWriter, r *http.Request) {
+	chirpID, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "invalid chirp ID", http.StatusBadRequest)
+		return
+	}
+	chirp, err := c.db.GetChirpById(r.Context(), chirpID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "chirp not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := response{
+		ID:        chirp.ID,
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserID:    chirp.UserID,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
