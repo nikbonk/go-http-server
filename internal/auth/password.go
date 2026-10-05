@@ -2,7 +2,7 @@ package auth
 
 import "github.com/alexedwards/argon2id"
 
-var argonParams *argon2id.Params = &argon2id.Params{
+var argonParams = &argon2id.Params{
 	Memory:      64 * 1024, // 64 MiB
 	Iterations:  3,
 	Parallelism: 4,
