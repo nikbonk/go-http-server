@@ -38,7 +38,12 @@ func loadApiConfig() (*api.ApiConfig, error) {
 		return nil, errors.New("PLATFORM must be dev or prod")
 	}
 
-	return api.NewApiConfig(dbQueries, platform), nil
+	jwtSigningKey := os.Getenv("JWT_SIGNING_KEY")
+	if jwtSigningKey == "" {
+		return nil, errors.New("JWT_SIGNING_KEY not set")
+	}
+
+	return api.NewApiConfig(dbQueries, platform, jwtSigningKey), nil
 }
 
 func main() {
