@@ -8,13 +8,13 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/nikbonk/go-http-server/internal/auth"
 	"github.com/nikbonk/go-http-server/internal/database"
 	validate "github.com/nikbonk/go-http-server/internal/validateBody"
 )
 
 type chirpCreateRequest struct {
-	Body   string    `json:"body"`
-	UserID uuid.UUID `json:"user_id"`
+	Body string `json:"body"`
 }
 
 type response struct {
@@ -34,18 +34,30 @@ func (c *ApiConfig) ChirpCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	userID, err := auth.ValidateJWT(token, c.jwtSigningKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	valid, body, err := validate.ValidaChirp(request.Body)
 	if !valid {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	now := time.Now().UTC()
 	chirp, err := c.db.CreateChirp(r.Context(), database.CreateChirpParams{
 		ID:        uuid.New(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: now,
+		UpdatedAt: now,
 		Body:      body,
-		UserID:    request.UserID,
+		UserID:    userID,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

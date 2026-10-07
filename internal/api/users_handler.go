@@ -11,8 +11,9 @@ import (
 )
 
 type userCreateRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	ExpiresIn int    `json:"expires_in_seconds"`
 }
 
 type user struct {
@@ -20,6 +21,7 @@ type user struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	JWTToken  string    `json:"token"`
 }
 
 func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,10 +43,11 @@ func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	now := time.Now().UTC()
 	createdUser, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
 		ID:             uuid.New(),
-		CreatedAt:      time.Now().UTC(),
-		UpdatedAt:      time.Now().UTC(),
+		CreatedAt:      now,
+		UpdatedAt:      now,
 		Email:          req.Email,
 		HashedPassword: hashedPassword,
 	})
@@ -100,12 +103,25 @@ func (cfg *ApiConfig) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	seconds := 3600
+	if req.ExpiresIn > 0 && req.ExpiresIn <= 3600 {
+		seconds = req.ExpiresIn
+	}
+	expiresIn := time.Duration(seconds) * time.Second
+
+	token, err := auth.MakeJWT(requestedUser.ID, cfg.jwtSigningKey, expiresIn)
+	if err != nil {
+		http.Error(w, "error while generating token", http.StatusInternalServerError)
+		return
+	}
+
 	// Do NOT return the hashed password in the respone (naughty naughty!)
 	resp := user{
 		ID:        requestedUser.ID,
 		Email:     req.Email,
 		CreatedAt: requestedUser.CreatedAt,
 		UpdatedAt: requestedUser.UpdatedAt,
+		JWTToken:  token,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
