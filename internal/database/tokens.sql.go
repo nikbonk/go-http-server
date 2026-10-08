@@ -50,7 +50,7 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 const getRefreshToken = `-- name: GetRefreshToken :one
 select token, created_at, updated_at, expires_at, revoked_at, user_id
 from refresh_tokens
-where token like $1
+where token = $1
 `
 
 func (q *Queries) GetRefreshToken(ctx context.Context, token string) (RefreshToken, error) {
@@ -70,7 +70,7 @@ func (q *Queries) GetRefreshToken(ctx context.Context, token string) (RefreshTok
 const revokeToken = `-- name: RevokeToken :one
 update refresh_tokens
 SET revoked_at = $1, updated_at = $2
-where token like $3
+where token = $3
 returning token, created_at, updated_at, expires_at, revoked_at, user_id
 `
 

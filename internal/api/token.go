@@ -11,7 +11,7 @@ import (
 )
 
 func (cfg *ApiConfig) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
-	refreshToken, err := auth.GetBearerRefreshToken(r.Header)
+	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -51,7 +51,7 @@ func (cfg *ApiConfig) RefreshTokenHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (cfg *ApiConfig) RevokeTokenHandler(w http.ResponseWriter, r *http.Request) {
-	refreshToken, err := auth.GetBearerRefreshToken(r.Header)
+	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
