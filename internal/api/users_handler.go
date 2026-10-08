@@ -10,23 +10,9 @@ import (
 	"github.com/nikbonk/go-http-server/internal/database"
 )
 
-type userCreateRequest struct {
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	ExpiresIn int    `json:"expires_in_seconds"`
-}
-
-type user struct {
-	ID        uuid.UUID `json:"id"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	JWTToken  string    `json:"token"`
-}
-
 func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var req userCreateRequest
+	var req userRequest
 	if err := decoder.Decode(&req); err != nil {
 		http.Error(w, "error while decoding request", http.StatusInternalServerError)
 		return
@@ -57,7 +43,7 @@ func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Do NOT return the hashed password in the respone (naughty naughty!)
-	resp := user{
+	resp := userCreateResponse{
 		ID:        createdUser.ID,
 		Email:     req.Email,
 		CreatedAt: createdUser.CreatedAt,
@@ -75,7 +61,7 @@ func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) 
 
 func (cfg *ApiConfig) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var req userCreateRequest
+	var req userRequest
 	if err := decoder.Decode(&req); err != nil {
 		http.Error(w, "error while decoding request", http.StatusInternalServerError)
 		return
@@ -103,25 +89,37 @@ func (cfg *ApiConfig) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seconds := 3600
-	if req.ExpiresIn > 0 && req.ExpiresIn <= 3600 {
-		seconds = req.ExpiresIn
-	}
-	expiresIn := time.Duration(seconds) * time.Second
-
-	token, err := auth.MakeJWT(requestedUser.ID, cfg.jwtSigningKey, expiresIn)
+	token, err := auth.MakeJWT(requestedUser.ID, cfg.jwtSigningKey)
 	if err != nil {
 		http.Error(w, "error while generating token", http.StatusInternalServerError)
 		return
 	}
 
+	hours := 1440
+	refreshTokenExpiresIn := time.Duration(hours) * time.Hour
+
+	refreshToken := auth.MakeRefreshToken()
+	now := time.Now().UTC()
+	_, err = cfg.db.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
+		Token:     refreshToken,
+		CreatedAt: now,
+		UpdatedAt: now,
+		ExpiresAt: now.Add(refreshTokenExpiresIn),
+		UserID:    requestedUser.ID,
+	})
+	if err != nil {
+		http.Error(w, "error while generating refresh token", http.StatusInternalServerError)
+		return
+	}
+
 	// Do NOT return the hashed password in the respone (naughty naughty!)
-	resp := user{
-		ID:        requestedUser.ID,
-		Email:     req.Email,
-		CreatedAt: requestedUser.CreatedAt,
-		UpdatedAt: requestedUser.UpdatedAt,
-		JWTToken:  token,
+	resp := userLoginResponse{
+		ID:           requestedUser.ID,
+		Email:        req.Email,
+		CreatedAt:    requestedUser.CreatedAt,
+		UpdatedAt:    requestedUser.UpdatedAt,
+		JWT:          token,
+		RefreshToken: refreshToken,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -13,20 +13,8 @@ import (
 	validate "github.com/nikbonk/go-http-server/internal/validateBody"
 )
 
-type chirpCreateRequest struct {
-	Body string `json:"body"`
-}
-
-type response struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Body      string    `json:"body"`
-	UserID    uuid.UUID `json:"user_id"`
-}
-
 func (c *ApiConfig) ChirpCreateHandler(w http.ResponseWriter, r *http.Request) {
-	request := chirpCreateRequest{}
+	request := chirpRequest{}
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&request); err != nil {
@@ -64,7 +52,7 @@ func (c *ApiConfig) ChirpCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := response{
+	response := chirpResponse{
 		ID:        chirp.ID,
 		CreatedAt: chirp.CreatedAt,
 		UpdatedAt: chirp.UpdatedAt,
@@ -88,9 +76,9 @@ func (c *ApiConfig) ChirpGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses := make([]response, len(chirps))
+	responses := make([]chirpResponse, len(chirps))
 	for i, chirp := range chirps {
-		responses[i] = response{
+		responses[i] = chirpResponse{
 			ID:        chirp.ID,
 			CreatedAt: chirp.CreatedAt,
 			UpdatedAt: chirp.UpdatedAt,
@@ -123,7 +111,7 @@ func (c *ApiConfig) ChirpGetByIdHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	response := response{
+	response := chirpResponse{
 		ID:        chirp.ID,
 		CreatedAt: chirp.CreatedAt,
 		UpdatedAt: chirp.UpdatedAt,

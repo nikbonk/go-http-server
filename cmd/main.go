@@ -60,11 +60,16 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /app/", cfg.MiddlewareMetricsInc(api.MiddlewareLog(appHandler)))
-	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(api.HealthHandler))))
+
 	mux.Handle("GET /admin/metrics", api.MiddlewareLog(http.HandlerFunc(cfg.MetricHandler)))
 	mux.Handle("POST /admin/reset", api.MiddlewareLog(http.HandlerFunc(cfg.ResetHandler)))
+
+	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(api.HealthHandler))))
 	mux.Handle("POST /api/users", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserCreateHandler))))
 	mux.Handle("POST /api/login", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserLoginHandler))))
+	mux.Handle("POST /api/refresh", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.RefreshTokenHandler))))
+	mux.Handle("POST /api/revoke", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.RevokeTokenHandler))))
+
 	mux.Handle("POST /api/chirps", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpCreateHandler))))
 	mux.Handle("GET /api/chirps", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpGetHandler))))
 	mux.Handle("GET /api/chirps/{id}", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpGetByIdHandler))))

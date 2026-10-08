@@ -9,9 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
+func MakeJWT(userID uuid.UUID, tokenSecret string) (string, error) {
+	seconds := 3600
+	jwtExpiresIn := time.Duration(seconds) * time.Second
+
 	claims := jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn).UTC()),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(jwtExpiresIn).UTC()),
 		IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 		NotBefore: jwt.NewNumericDate(time.Now().UTC()),
 		Issuer:    "chirpy-access",
