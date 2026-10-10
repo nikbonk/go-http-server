@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -31,19 +30,28 @@ func MakeJWT(userID uuid.UUID, tokenSecret string) (string, error) {
 }
 
 func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
-		return []byte(tokenSecret), nil
-	})
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&jwt.RegisteredClaims{},
+		func(token *jwt.Token) (any, error) {
+			return []byte(tokenSecret), nil
+		},
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+		jwt.WithIssuer("chirpy-access"),
+	)
 	if err != nil {
-		log.Println(err)
 		return uuid.Nil, err
-	} else if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok {
-		userID, err := uuid.Parse(claims.Subject)
-		if err != nil {
-			return uuid.Nil, err
-		}
-		return userID, nil
-	} else {
-		return uuid.Nil, errors.New("Invalid Token")
 	}
+
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok || !token.Valid {
+		return uuid.Nil, errors.New("invalid token")
+	}
+
+	userID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return userID, nil
 }
