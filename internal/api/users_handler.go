@@ -129,3 +129,62 @@ func (cfg *ApiConfig) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (cfg *ApiConfig) UserUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := auth.ValidateJWT(token, cfg.jwtSigningKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var req userRequest
+	if err := decoder.Decode(&req); err != nil {
+		http.Error(w, "error while decoding request", http.StatusInternalServerError)
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		http.Error(w, "email and password are required", http.StatusBadRequest)
+		return
+	}
+
+	hashedPassword, err := auth.HashPassword(req.Password)
+	if err != nil {
+		http.Error(w, "error while hashing password", http.StatusInternalServerError)
+		return
+	}
+
+	updatedUser, err := cfg.db.UpdateUsers(r.Context(), database.UpdateUsersParams{
+		Email:          req.Email,
+		HashedPassword: hashedPassword,
+		UpdatedAt:      time.Now().UTC(),
+		ID:             userID,
+	})
+	if err != nil {
+		http.Error(w, "error while updating user", http.StatusInternalServerError)
+		return
+	}
+
+	// Reusing struct since it has the needed fields
+	resp := userCreateResponse{
+		ID:        updatedUser.ID,
+		Email:     req.Email,
+		CreatedAt: updatedUser.CreatedAt,
+		UpdatedAt: updatedUser.UpdatedAt,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, "error while encoding response", http.StatusInternalServerError)
+		return
+	}
+
+}

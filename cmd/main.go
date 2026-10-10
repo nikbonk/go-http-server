@@ -66,6 +66,7 @@ func main() {
 
 	mux.Handle("GET /api/healthz", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(api.HealthHandler))))
 	mux.Handle("POST /api/users", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserCreateHandler))))
+	mux.Handle("PUT /api/users", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserUpdateHandler))))
 	mux.Handle("POST /api/login", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.UserLoginHandler))))
 	mux.Handle("POST /api/refresh", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.RefreshTokenHandler))))
 	mux.Handle("POST /api/revoke", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.RevokeTokenHandler))))
