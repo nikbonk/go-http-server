@@ -1,7 +1,9 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -29,14 +31,13 @@ func (c *ApiConfig) PolkaUpgradeUserEventHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	rowsAffected, err := c.db.UpdateUserMembership(r.Context(), userID)
+	_, err = c.db.UpdateUserMembership(r.Context(), userID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	if rowsAffected == 0 {
-		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
