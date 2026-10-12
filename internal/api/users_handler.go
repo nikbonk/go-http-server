@@ -44,10 +44,11 @@ func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Do NOT return the hashed password in the respone (naughty naughty!)
 	resp := userCreateResponse{
-		ID:        createdUser.ID,
-		Email:     req.Email,
-		CreatedAt: createdUser.CreatedAt,
-		UpdatedAt: createdUser.UpdatedAt,
+		ID:              createdUser.ID,
+		Email:           req.Email,
+		CreatedAt:       createdUser.CreatedAt,
+		UpdatedAt:       createdUser.UpdatedAt,
+		IsMembershipRed: createdUser.IsChirpyRed,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -114,12 +115,13 @@ func (cfg *ApiConfig) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Do NOT return the hashed password in the respone (naughty naughty!)
 	resp := userLoginResponse{
-		ID:           requestedUser.ID,
-		Email:        req.Email,
-		CreatedAt:    requestedUser.CreatedAt,
-		UpdatedAt:    requestedUser.UpdatedAt,
-		JWT:          token,
-		RefreshToken: refreshToken,
+		ID:              requestedUser.ID,
+		Email:           req.Email,
+		CreatedAt:       requestedUser.CreatedAt,
+		UpdatedAt:       requestedUser.UpdatedAt,
+		JWT:             token,
+		RefreshToken:    refreshToken,
+		IsMembershipRed: requestedUser.IsChirpyRed,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -174,10 +176,11 @@ func (cfg *ApiConfig) UserUpdateHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Reusing struct since it has the needed fields
 	resp := userCreateResponse{
-		ID:        updatedUser.ID,
-		Email:     req.Email,
-		CreatedAt: updatedUser.CreatedAt,
-		UpdatedAt: updatedUser.UpdatedAt,
+		ID:              updatedUser.ID,
+		Email:           req.Email,
+		CreatedAt:       updatedUser.CreatedAt,
+		UpdatedAt:       updatedUser.UpdatedAt,
+		IsMembershipRed: updatedUser.IsChirpyRed,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -15,7 +15,7 @@ import (
 const createUser = `-- name: CreateUser :one
 insert into users (id, created_at, updated_at, email, hashed_password)
 values ($1, $2, $3, $4, $5)
-returning id, created_at, updated_at, email, hashed_password
+returning id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type CreateUserParams struct {
@@ -41,12 +41,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-select id, created_at, updated_at, email, hashed_password from users where email = $1
+select id, created_at, updated_at, email, hashed_password, is_chirpy_red from users where email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -58,6 +59,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -71,11 +73,25 @@ func (q *Queries) ResetUsers(ctx context.Context) error {
 	return err
 }
 
+const updateUserMembership = `-- name: UpdateUserMembership :execrows
+update users
+SET is_chirpy_red = true
+where id = $1
+`
+
+func (q *Queries) UpdateUserMembership(ctx context.Context, id uuid.UUID) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateUserMembership, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const updateUsers = `-- name: UpdateUsers :one
 update users
 SET email = $1, hashed_password = $2, updated_at = $3
 where id = $4
-returning id, created_at, updated_at, email, hashed_password
+returning id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type UpdateUsersParams struct {
@@ -99,6 +115,7 @@ func (q *Queries) UpdateUsers(ctx context.Context, arg UpdateUsersParams) (User,
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }

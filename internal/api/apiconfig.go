@@ -41,21 +41,30 @@ type userRequest struct {
 }
 
 type userCreateResponse struct {
-	ID        uuid.UUID `json:"id"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID              uuid.UUID `json:"id"`
+	Email           string    `json:"email"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	IsMembershipRed bool      `json:"is_chirpy_red"`
 }
 
 type userLoginResponse struct {
-	ID           uuid.UUID `json:"id"`
-	Email        string    `json:"email"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	JWT          string    `json:"token"`
-	RefreshToken string    `json:"refresh_token"`
+	ID              uuid.UUID `json:"id"`
+	Email           string    `json:"email"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	JWT             string    `json:"token"`
+	RefreshToken    string    `json:"refresh_token"`
+	IsMembershipRed bool      `json:"is_chirpy_red"`
 }
 
 type refreshTokenResponse struct {
 	JWT string `json:"token"`
+}
+
+type polkaWebhookRequest struct {
+	Event string `json:"event"`
+	Data  struct {
+		UserID string `json:"user_id"`
+	} `json:"data"`
 }

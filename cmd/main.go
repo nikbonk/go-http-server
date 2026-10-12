@@ -74,6 +74,9 @@ func main() {
 	mux.Handle("POST /api/chirps", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpCreateHandler))))
 	mux.Handle("GET /api/chirps", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpGetHandler))))
 	mux.Handle("GET /api/chirps/{id}", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpGetByIdHandler))))
+	mux.Handle("DELETE /api/chirps/{id}", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.ChirpDeleteByIdHandler))))
+
+	mux.Handle("POST /api/polka/webhooks", cfg.MiddlewareMetricsInc(api.MiddlewareLog(http.HandlerFunc(cfg.PolkaUpgradeUserEventHandler))))
 
 	srv := &http.Server{
 		Addr:         ":" + srvPort,

@@ -14,3 +14,8 @@ update users
 SET email = $1, hashed_password = $2, updated_at = $3
 where id = $4
 returning *;
+
+-- name: UpdateUserMembership :execrows
+update users
+SET is_chirpy_red = true
+where id = $1;
