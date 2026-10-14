@@ -25,3 +25,14 @@ func MakeRefreshToken() string {
 
 	return hex.EncodeToString(token)
 }
+
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	parts := strings.SplitN(authHeader, " ", 2)
+
+	if len(parts) != 2 || parts[0] != "ApiKey" || parts[1] == "" {
+		return "", errors.New("No api key in request")
+	}
+
+	return parts[1], nil
+}

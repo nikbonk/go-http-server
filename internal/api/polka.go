@@ -7,10 +7,22 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/nikbonk/go-http-server/internal/auth"
 )
 
 func (c *ApiConfig) PolkaUpgradeUserEventHandler(w http.ResponseWriter, r *http.Request) {
 	polkaExpectedEvent := "user.upgraded"
+
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if apiKey != c.polkaKey {
+		http.Error(w, "Action not allowed ", http.StatusUnauthorized)
+		return
+	}
 
 	request := polkaWebhookRequest{}
 

@@ -13,13 +13,15 @@ type ApiConfig struct {
 	db             *database.Queries
 	platform       string
 	jwtSigningKey  string
+	polkaKey       string
 }
 
-func NewApiConfig(db *database.Queries, platform string, jwtSigningKey string) *ApiConfig {
+func NewApiConfig(db *database.Queries, platform string, jwtSigningKey string, polkaKey string) *ApiConfig {
 	return &ApiConfig{
 		db:            db,
 		platform:      platform,
 		jwtSigningKey: jwtSigningKey,
+		polkaKey:      polkaKey,
 	}
 }
 
