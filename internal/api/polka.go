@@ -10,6 +10,18 @@ import (
 	"github.com/nikbonk/go-http-server/internal/auth"
 )
 
+// PolkaUpgradeUserEventHandler godoc
+// @Summary      Process membership upgrade webhook
+// @Description  Processes user.upgraded events from Polka.
+// @Tags         webhooks
+// @Accept       json
+// @Security     PolkaApiKey
+// @Param        request body polkaWebhookRequest true "Webhook event"
+// @Success      204 "Event processed or ignored"
+// @Failure      400 {string} string "Invalid JSON"
+// @Failure      401 {string} string "Invalid API key"
+// @Failure      500 {string} string "Invalid user UUID or internal server error"
+// @Router       /api/polka/webhooks [post]
 func (c *ApiConfig) PolkaUpgradeUserEventHandler(w http.ResponseWriter, r *http.Request) {
 	polkaExpectedEvent := "user.upgraded"
 

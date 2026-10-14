@@ -10,11 +10,21 @@ import (
 	"github.com/nikbonk/go-http-server/internal/database"
 )
 
+// UserCreateHandler godoc
+// @Summary      Create user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body userRequest true "Email and password"
+// @Success      201 {object} userCreateResponse
+// @Failure      400 {string} string "Email and password are required"
+// @Failure      500 {string} string "Internal server error"
+// @Router       /api/users [post]
 func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req userRequest
 	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, "error while decoding request", http.StatusInternalServerError)
+		http.Error(w, "error while decoding request", http.StatusBadRequest)
 		return
 	}
 
@@ -60,11 +70,22 @@ func (cfg *ApiConfig) UserCreateHandler(w http.ResponseWriter, r *http.Request) 
 
 }
 
+// UserLoginHandler godoc
+// @Summary      Log in
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body userRequest true "Email and password"
+// @Success      200 {object} userLoginResponse
+// @Failure      400 {string} string "Invalid request"
+// @Failure      401 {string} string "Password does not match"
+// @Failure      500 {string} string "Internal server error"
+// @Router       /api/login [post]
 func (cfg *ApiConfig) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req userRequest
 	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, "error while decoding request", http.StatusInternalServerError)
+		http.Error(w, "error while decoding request", http.StatusBadRequest)
 		return
 	}
 
@@ -132,6 +153,19 @@ func (cfg *ApiConfig) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UserUpdateHandler godoc
+// @Summary      Update current user
+// @Description  Updates the authenticated user's email and password.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body userRequest true "New email and password"
+// @Success      200 {object} userCreateResponse
+// @Failure      400 {string} string "Invalid request or missing fields"
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      500 {string} string "Internal server error"
+// @Router       /api/users [put]
 func (cfg *ApiConfig) UserUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -148,7 +182,7 @@ func (cfg *ApiConfig) UserUpdateHandler(w http.ResponseWriter, r *http.Request) 
 	decoder := json.NewDecoder(r.Body)
 	var req userRequest
 	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, "error while decoding request", http.StatusInternalServerError)
+		http.Error(w, "error while decoding request", http.StatusBadRequest)
 		return
 	}
 

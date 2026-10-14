@@ -10,6 +10,17 @@ import (
 	"github.com/nikbonk/go-http-server/internal/database"
 )
 
+// RefreshTokenHandler godoc
+// @Summary      Refresh access token
+// @Description  Exchanges a valid refresh token for a new access token.
+// @Tags         auth
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} refreshTokenResponse
+// @Failure      400 {string} string "Missing bearer token"
+// @Failure      401 {string} string "Unknown, expired, or revoked refresh token"
+// @Failure      500 {string} string "Internal server error"
+// @Router       /api/refresh [post]
 func (cfg *ApiConfig) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -50,6 +61,14 @@ func (cfg *ApiConfig) RefreshTokenHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// RevokeTokenHandler godoc
+// @Summary      Revoke refresh token
+// @Tags         auth
+// @Security     BearerAuth
+// @Success      204 "Token revoked"
+// @Failure      400 {string} string "Missing bearer token"
+// @Failure      401 {string} string "Unknown token"
+// @Router       /api/revoke [post]
 func (cfg *ApiConfig) RevokeTokenHandler(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {

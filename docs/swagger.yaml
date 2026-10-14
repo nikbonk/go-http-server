@@ -1,0 +1,444 @@
+basePath: /
+definitions:
+  api.chirpRequest:
+    properties:
+      body:
+        type: string
+    type: object
+  api.chirpResponse:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  api.polkaWebhookRequest:
+    properties:
+      data:
+        properties:
+          user_id:
+            type: string
+        type: object
+      event:
+        type: string
+    type: object
+  api.refreshTokenResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  api.userCreateResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_chirpy_red:
+        type: boolean
+      updated_at:
+        type: string
+    type: object
+  api.userLoginResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_chirpy_red:
+        type: boolean
+      refresh_token:
+        type: string
+      token:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  api.userRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API documentation for the Chirpy backend.
+  title: Chirpy API
+  version: "1.0"
+paths:
+  /admin/metrics:
+    get:
+      description: Displays the file server hit counter as HTML.
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML metrics page
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: File server metrics
+      tags:
+      - admin
+  /admin/reset:
+    post:
+      description: Deletes users and resets the file server hit counter. Only allowed
+        in dev.
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Users reset successfully
+          schema:
+            type: string
+        "403":
+          description: Deleting users on production is not allowed
+          schema:
+            type: string
+        "500":
+          description: Failed to reset users
+          schema:
+            type: string
+      summary: Reset users
+      tags:
+      - admin
+  /api/chirps:
+    get:
+      description: Optionally filter chirps by author UUID.
+      parameters:
+      - description: Author UUID
+        in: query
+        name: author_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.chirpResponse'
+            type: array
+        "400":
+          description: Invalid author_id
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: List chirps
+      tags:
+      - chirps
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Chirp body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.chirpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.chirpResponse'
+        "400":
+          description: Invalid JSON or chirp body
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Create chirp
+      tags:
+      - chirps
+  /api/chirps/{id}:
+    delete:
+      description: Only the author of a chirp may delete it.
+      parameters:
+      - description: Chirp UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Chirp deleted
+        "400":
+          description: Invalid chirp ID
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: Not allowed to delete this chirp
+          schema:
+            type: string
+        "404":
+          description: Chirp not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Delete chirp
+      tags:
+      - chirps
+    get:
+      parameters:
+      - description: Chirp UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.chirpResponse'
+        "400":
+          description: Invalid chirp ID
+          schema:
+            type: string
+        "404":
+          description: Chirp not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get chirp by ID
+      tags:
+      - chirps
+  /api/healthz:
+    get:
+      description: Returns OK when the handler is reachable.
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - health
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.userRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.userLoginResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "401":
+          description: Password does not match
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Log in
+      tags:
+      - auth
+  /api/polka/webhooks:
+    post:
+      consumes:
+      - application/json
+      description: Processes user.upgraded events from Polka.
+      parameters:
+      - description: Webhook event
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.polkaWebhookRequest'
+      responses:
+        "204":
+          description: Event processed or ignored
+        "400":
+          description: Invalid JSON
+          schema:
+            type: string
+        "401":
+          description: Invalid API key
+          schema:
+            type: string
+        "500":
+          description: Invalid user UUID or internal server error
+          schema:
+            type: string
+      security:
+      - PolkaApiKey: []
+      summary: Process membership upgrade webhook
+      tags:
+      - webhooks
+  /api/refresh:
+    post:
+      description: Exchanges a valid refresh token for a new access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.refreshTokenResponse'
+        "400":
+          description: Missing bearer token
+          schema:
+            type: string
+        "401":
+          description: Unknown, expired, or revoked refresh token
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Refresh access token
+      tags:
+      - auth
+  /api/revoke:
+    post:
+      responses:
+        "204":
+          description: Token revoked
+        "400":
+          description: Missing bearer token
+          schema:
+            type: string
+        "401":
+          description: Unknown token
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Revoke refresh token
+      tags:
+      - auth
+  /api/users:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.userRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.userCreateResponse'
+        "400":
+          description: Email and password are required
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates the authenticated user's email and password.
+      parameters:
+      - description: New email and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.userRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.userCreateResponse'
+        "400":
+          description: Invalid request or missing fields
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Update current user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: 'Enter your token as: Bearer <token>'
+    in: header
+    name: Authorization
+    type: apiKey
+  PolkaApiKey:
+    description: 'Enter your API key as: ApiKey <key>'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

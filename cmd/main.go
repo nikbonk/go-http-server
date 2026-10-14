@@ -12,6 +12,9 @@ import (
 	_ "github.com/lib/pq"
 	api "github.com/nikbonk/go-http-server/internal/api"
 	"github.com/nikbonk/go-http-server/internal/database"
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "github.com/nikbonk/go-http-server/docs"
 )
 
 const (
@@ -64,6 +67,7 @@ func main() {
 	)
 
 	mux := http.NewServeMux()
+	mux.Handle("GET /swagger/", httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json")))
 	mux.Handle("GET /app/", cfg.MiddlewareMetricsInc(api.MiddlewareLog(appHandler)))
 
 	mux.Handle("GET /admin/metrics", api.MiddlewareLog(http.HandlerFunc(cfg.MetricHandler)))
