@@ -8,6 +8,12 @@ select *
 from chirps
 order by created_at asc;
 
+-- name: GetChirpsByAuthor :many
+SELECT *
+FROM chirps
+WHERE user_id = $1
+ORDER BY created_at ASC;
+
 -- name: GetChirpById :one
 select *
 from chirps

@@ -43,7 +43,12 @@ func loadApiConfig() (*api.ApiConfig, error) {
 		return nil, errors.New("JWT_SIGNING_KEY not set")
 	}
 
-	return api.NewApiConfig(dbQueries, platform, jwtSigningKey), nil
+	polkaKey := os.Getenv("POLA_KEY")
+	if polkaKey == "" {
+		return nil, errors.New("POLKA_KEY not set")
+	}
+
+	return api.NewApiConfig(dbQueries, platform, jwtSigningKey, polkaKey), nil
 }
 
 func main() {
