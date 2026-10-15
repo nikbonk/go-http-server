@@ -117,11 +117,18 @@ paths:
       - admin
   /api/chirps:
     get:
-      description: Optionally filter chirps by author UUID.
+      description: Optionally filter chirps by author UUID and sort by creation date.
       parameters:
       - description: Author UUID
         in: query
         name: author_id
+        type: string
+      - description: 'Sort order: asc or desc'
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sort
         type: string
       produces:
       - application/json
@@ -133,7 +140,7 @@ paths:
               $ref: '#/definitions/api.chirpResponse'
             type: array
         "400":
-          description: Invalid author_id
+          description: Invalid author_id or sort order
           schema:
             type: string
         "500":

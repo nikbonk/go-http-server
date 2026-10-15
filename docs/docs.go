@@ -75,7 +75,7 @@ const docTemplate = `{
         },
         "/api/chirps": {
             "get": {
-                "description": "Optionally filter chirps by author UUID.",
+                "description": "Optionally filter chirps by author UUID and sort by creation date.",
                 "produces": [
                     "application/json"
                 ],
@@ -88,6 +88,16 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Author UUID",
                         "name": "author_id",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "description": "Sort order: asc or desc",
+                        "name": "sort",
                         "in": "query"
                     }
                 ],
@@ -102,7 +112,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid author_id",
+                        "description": "Invalid author_id or sort order",
                         "schema": {
                             "type": "string"
                         }

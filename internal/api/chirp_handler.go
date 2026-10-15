@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -83,12 +84,13 @@ func (c *ApiConfig) ChirpCreateHandler(w http.ResponseWriter, r *http.Request) {
 
 // ChirpGetHandler godoc
 // @Summary      List chirps
-// @Description  Optionally filter chirps by author UUID.
+// @Description  Optionally filter chirps by author UUID and sort by creation date.
 // @Tags         chirps
 // @Produce      json
 // @Param        author_id query string false "Author UUID"
+// @Param        sort query string false "Sort order: asc or desc" Enums(asc, desc)
 // @Success      200 {array} chirpResponse
-// @Failure      400 {string} string "Invalid author_id"
+// @Failure      400 {string} string "Invalid author_id or sort order"
 // @Failure      500 {string} string "Internal server error"
 // @Router       /api/chirps [get]
 func (c *ApiConfig) ChirpGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +115,22 @@ func (c *ApiConfig) ChirpGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sortOrder := r.URL.Query().Get("sort")
+
+	switch sortOrder {
+	case "", "asc":
+		sort.Slice(chirps, func(i, j int) bool {
+			return chirps[i].CreatedAt.Before(chirps[j].CreatedAt)
+		})
+	case "desc":
+		sort.Slice(chirps, func(i, j int) bool {
+			return chirps[i].CreatedAt.After(chirps[j].CreatedAt)
+		})
+	default:
+		http.Error(w, "Invalid sort order", http.StatusBadRequest)
 		return
 	}
 
